@@ -1,3 +1,3 @@
 const sudoku = require("./index");
 
-sudoku.generate({}).then(console.log).catch(console.warn);
+sudoku.generate({type:"rows", difficulty:"beginner"}).then(console.log).catch(console.warn);

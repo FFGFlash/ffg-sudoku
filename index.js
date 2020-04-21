@@ -156,6 +156,29 @@ class Sudoku {
         }
       }
 
+      switch(type) {
+        case "rows":
+          break;
+        case "columns":
+          let columnGrid = [[],[],[],[],[],[],[],[],[]];
+          for (let i = 0; i < 81; i++) {
+            let j = Math.floor(i / 9);
+            let k = i % 9;
+            columnGrid[k][j] = grid[j][k];
+          }
+          grid = columnGrid;
+          break;
+        case "nonets":
+          let nonetGrid = [[],[],[],[],[],[],[],[],[]];
+          for (let i = 0; i < 9; i++) {
+            let l = Math.floor(i / 3);
+            let m = Math.floor(i % 3);
+            nonetGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+          }
+          grid = nonetGrid;
+          break;
+      }
+
       resolve(new Sudoku(grid, type, difficulty));
     });
   }
