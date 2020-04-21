@@ -14,11 +14,88 @@ function randInt(max, min = 0) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
+function solveGrid(grid, counter) {
+  let j = 0, k = 0;
+  for (let i = 0; i < 81; i++) {
+    j = Math.floor(i / 9);
+    k = i % 9;
+    let l = Math.floor(Math.floor(i / 9) / 3);
+    let m = Math.floor(i % 9 / 3);
+    if (grid[j][k] == 0) {
+      let col = [].concat(grid[0][k], grid[1][k], grid[2][k], grid[3][k], grid[4][k], grid[5][k], grid[6][k], grid[7][k], grid[8][k]);
+      let row = grid[j];
+      let sqr = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+      for (let value of Sudoku.NUMBERS) {
+        if (isNaN(value)) value = parseInt(value);
+        if (!row.contains(value)) {
+          if (!col.contains(value)) {
+            if (!sqr.contains(value)) {
+              grid[j][k] = value;
+              if (checkGrid(grid)) {
+                counter++;
+                break;
+              } else if (solveGrid(grid)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      break;
+    }
+  }
+  grid[j][k] = 0;
+}
+
+function checkGrid(grid) {
+  for (let row of grid) {
+    if (row.contains(0)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function fillGrid(grid) {
+  let j = 0, k = 0;
+  for (let i = 0; i < 81; i++) {
+    // i = j + k * 9
+    j = Math.floor(i / 9);
+    k = i % 9;
+    let l = Math.floor(Math.floor(i / 9) / 3);
+    let m = Math.floor(i % 9 / 3);
+    if (grid[j][k] == 0) {
+      let col = [].concat(grid[0][k], grid[1][k], grid[2][k], grid[3][k], grid[4][k], grid[5][k], grid[6][k], grid[7][k], grid[8][k]);
+      let row = grid[j];
+      let sqr = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+      numbers.shuffle();
+      for (let value of numbers) {
+        if (isNaN(value)) value = parseInt(value);
+        if (!row.contains(value)) {
+          if (!col.contains(value)) {
+            if (!sqr.contains(value)) {
+              grid[j][k] = value;
+              if (checkGrid(grid)) {
+                return true;
+              } else if (fillGrid(grid)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      break;
+    }
+  }
+  grid[j][k] = 0;
+}
+
 class Sudoku {
   constructor(board, type, difficulty) {
     this.type = type;
     this.difficulty = difficulty;
     this.board = board;
+    this.status = 0;
   }
 
   static generate(options) {
@@ -37,101 +114,18 @@ class Sudoku {
         [0,0,0,0,0,0,0,0,0]
       ];
 
-      if (options.type != undefined) type = isNaN(options.type) ? options.type : Sudoku.TYPES[options.type];
-      if (options.difficulty != undefined) difficulty = isNaN(options.difficulty) ? options.difficulty : Sudoku.DIFFICULTIES[options.difficulty];
+      if (options.type != undefined) type = isNaN(options.type) ? options.type : Object.keys(Sudoku.TYPES)[options.type];
+      if (options.difficulty != undefined) difficulty = isNaN(options.difficulty) ? options.difficulty : Object.keys(Sudoku.DIFFICULTIES)[options.difficulty];
       if (difficulty == "random") difficulty = Sudoku.getRandomDifficulty();
 
       let numbers = Sudoku.NUMBERS;
       let counter = 1;
 
-      function solveGrid(grid) {
-        let j = 0, k = 0;
-        for (let i = 0; i < 81; i++) {
-          j = Math.floor(i / 9);
-          k = i % 9;
-          let l = Math.floor(Math.floor(i / 9) / 3);
-          let m = Math.floor(i % 9 / 3);
-          if (grid[j][k] == 0) {
-            let col = [].concat(grid[0][k], grid[1][k], grid[2][k], grid[3][k], grid[4][k], grid[5][k], grid[6][k], grid[7][k], grid[8][k]);
-            let row = grid[j];
-            let sqr = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
-            for (let value of Sudoku.NUMBERS) {
-              if (isNaN(value)) value = parseInt(value);
-              if (!row.contains(value)) {
-                if (!col.contains(value)) {
-                  if (!sqr.contains(value)) {
-                    grid[j][k] = value;
-                    if (checkGrid(grid)) {
-                      counter++;
-                      break;
-                    } else if (solveGrid(grid)) {
-                      return true;
-                    }
-                  }
-                }
-              }
-            }
-            break;
-          }
-        }
-        grid[j][k] = 0;
-      }
-
-      function checkGrid(grid) {
-        for (let row of grid) {
-          if (row.contains(0)) {
-            return false;
-          }
-        }
-        return true;
-      }
-
-      function fillGrid(grid) {
-        let j = 0, k = 0;
-        for (let i = 0; i < 81; i++) {
-          // i = j + k * 9
-          j = Math.floor(i / 9);
-          k = i % 9;
-          let l = Math.floor(Math.floor(i / 9) / 3);
-          let m = Math.floor(i % 9 / 3);
-          if (grid[j][k] == 0) {
-            let col = [].concat(grid[0][k], grid[1][k], grid[2][k], grid[3][k], grid[4][k], grid[5][k], grid[6][k], grid[7][k], grid[8][k]);
-            let row = grid[j];
-            let sqr = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
-            numbers.shuffle();
-            for (let value of numbers) {
-              if (isNaN(value)) value = parseInt(value);
-              if (!row.contains(value)) {
-                if (!col.contains(value)) {
-                  if (!sqr.contains(value)) {
-                    grid[j][k] = value;
-                    if (checkGrid(grid)) {
-                      return true;
-                    } else if (fillGrid(grid)) {
-                      return true;
-                    }
-                  }
-                }
-              }
-            }
-            break;
-          }
-        }
-        grid[j][k] = 0;
-      }
-
       fillGrid(grid);
-
-      let diffValues = {
-        "beginner": 50,
-        "intermediate": 55,
-        "advanced": 57,
-        "expert": 60
-      };
 
       let attempts = 30;
       let emptyValues = 0;
-      while(emptyValues <= diffValues[difficulty] && attempts > 0) {
+      while(emptyValues <= Sudoku.DIFFICULTIES[difficulty] && attempts > 0) {
         let i = randInt(9);
         let j = randInt(9);
         while (grid[i][j] == 0) {
@@ -146,7 +140,7 @@ class Sudoku {
         grid[l][m] = 0;
 
         counter = 0;
-        solveGrid([...grid]);
+        solveGrid([...grid], counter);
         console.log("Solutions: ", counter, "Remaining Attempts: ", attempts);
         console.log(JSON.stringify(grid));
         if (counter != 1) {
@@ -162,39 +156,115 @@ class Sudoku {
         case "rows":
           break;
         case "columns":
-          let columnGrid = [[],[],[],[],[],[],[],[],[]];
+          let newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 81; i++) {
             let j = Math.floor(i / 9);
             let k = i % 9;
-            columnGrid[k][j] = grid[j][k];
+            newGrid[k][j] = grid[j][k];
           }
-          grid = columnGrid;
+          grid = newGrid;
           break;
         case "nonets":
-          let nonetGrid = [[],[],[],[],[],[],[],[],[]];
+          let newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 9; i++) {
             let l = Math.floor(i / 3);
             let m = Math.floor(i % 3);
-            nonetGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+            newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
           }
-          grid = nonetGrid;
+          grid = newGrid;
           break;
       }
 
-      resolve(new Sudoku(grid, type, difficulty));
+      resolve(new Sudoku(grid, type, difficulty).is(Sudoku.FLAGS.VALID + Sudoku.FLAGS.UNSOLVED));
     });
   }
 
-  static validate(grid) {
-
+  static validate(grid, type) {
+    return new Promise((resolve, reject) => {
+      this.solve([...grid], type).then(sudoku => {
+        resolve({
+          "status": sudokus.status
+        });
+      });
+    });
   }
 
-  static grade(grid) {
-
+  static grade(grid, type) {
+    return new Promise((resolve, reject) => {
+      let emptyValues = 0;
+      for (let i = 0; i < 81; i++) {
+        let j = Math.floor(i / 9);
+        let k = i % 9;
+        if (grid[j][k] != 0) continue;
+        emptyValues++;
+      }
+      let difficulty = this.DIFFICULTIES[1];
+      for (let diff in this.DIFFICULTIES) {
+        if (emptyValues > this.DIFFICULTIES[diff]) continue;
+        difficulty = diff;
+        break;
+      }
+      resolve({
+        "difficulty": difficulty
+      });
+    });
   }
 
-  static solve(grid) {
+  static solve(grid, type) {
+    return new Promise((resolve, reject) => {
+      switch(type) {
+        case "rows":
+          break;
+        case "columns":
+          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          for (let i = 0; i < 81; i++) {
+            let j = Math.floor(i / 9);
+            let k = i % 9;
+            newGrid[k][j] = grid[j][k];
+          }
+          grid = newGrid;
+          break;
+        case "nonets":
+          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          for (let i = 0; i < 9; i++) {
+            let l = Math.floor(i / 3);
+            let m = Math.floor(i % 3);
+            newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+          }
+          grid = newGrid;
+          break;
+      }
 
+      let counter = 0;
+      solveGrid(grid, counter);
+
+      switch(type) {
+        case "rows":
+          break;
+        case "columns":
+          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          for (let i = 0; i < 81; i++) {
+            let j = Math.floor(i / 9);
+            let k = i % 9;
+            newGrid[k][j] = grid[j][k];
+          }
+          grid = newGrid;
+          break;
+        case "nonets":
+          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          for (let i = 0; i < 9; i++) {
+            let l = Math.floor(i / 3);
+            let m = Math.floor(i % 3);
+            newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+          }
+          grid = newGrid;
+          break;
+      }
+
+      let sudoku = new Sudoku(grid, type, difficulty).is(counter != 0 ? Sudoku.FLAGS.SOLVED : Sudoku.FLAGS.UNSOLVED).is(counter == 1 ? Sudoku.FLAGS.VALID : Sudoku.FLAGS.INVALID);
+
+      resolve(sudoku);
+    });
   }
 
   static get NUMBERS() {
@@ -202,38 +272,63 @@ class Sudoku {
   }
 
   static get TYPES() {
-    return [
-      "rows",
-      "columns",
-      "nonets"
-    ];
+    return {
+      rows: 0,
+      columns: 1,
+      nonets: 2
+    };
   }
 
   static get DIFFICULTIES() {
-    return [
-      "random",
-      "beginner",
-      "intermediate",
-      "advanced",
-      "expert"
-    ];
+    return {
+      random: 0,
+      beginner: 50,
+      intermediate: 55,
+      advanced: 57,
+      expert: 60
+    };
+  }
+
+  static get FLAGS() {
+    return {
+      VALID: 0b1,
+      INVALID: 0b10,
+      SOLVED: 0b100,
+      UNSOLVED: 0b1000
+    };
   }
 
   static getRandomDifficulty() {
-    let arr = this.DIFFICULTIES.slice(1);
+    let arr = Object.keys(this.DIFFICULTIES).slice(1);
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  get statusBits() {
+    return Number(this.status >>> 0).toString(2);
+  }
+
+  is(flag, value) {
+    if (value != undefined) {
+      flag = this.constructor.serialize(flag);
+      if (value && !this.is(flag)) this.status += flag;
+      else if (!value && this.is(flag)) this.status -= flag;
+      return this;
+    } else {
+      flag = Number(this.constructor.serialize(flag) >>> 0).toString(2);
+      return Number(this.statusBits.subString(this.statusBits.length - flag.length, this.statusBits.length - flag.length + 1)) === 1;
+    }
+  }
+
   validate() {
-    return Sudoku.validate(this.board);
+    return Sudoku.validate(this.board, this.type);
   }
 
   grade() {
-    return Sudoku.grade(this.board);
+    return Sudoku.grade(this.board, this.type);
   }
 
   solve() {
-    return Sudoku.solve(this.board);
+    return Sudoku.solve(this.board, this.type);
   }
 }
 
