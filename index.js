@@ -129,7 +129,7 @@ class Sudoku {
         "expert": 60
       };
 
-      let attempts = 10;
+      let attempts = 30;
       let emptyValues = 0;
       while(emptyValues <= diffValues[difficulty] && attempts > 0) {
         let i = randInt(9);
@@ -154,7 +154,7 @@ class Sudoku {
           grid[l][m] = backups[1];
           attempts -= 1;
         } else {
-          attempts += 5;
+          attempts = 30;
         }
       }
 
