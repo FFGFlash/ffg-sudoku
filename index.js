@@ -147,12 +147,14 @@ class Sudoku {
 
         counter = 0;
         solveGrid([...grid]);
+        console.log("Solutions: ", counter, "Remaining Attempts: ", attempts);
+        console.log(JSON.stringify(grid));
         if (counter != 1) {
           grid[i][j] = backups[0];
           grid[l][m] = backups[1];
           attempts -= 1;
         } else {
-          attempts = 10;
+          attempts += 5;
         }
       }
 
