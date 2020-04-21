@@ -1,6 +1,6 @@
 {
   "name": "ffg-sudoku",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Easily generate, solve, grade and validate Sudokus",
   "main": "index.js",
   "scripts": {
