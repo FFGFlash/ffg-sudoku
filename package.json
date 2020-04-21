@@ -1,0 +1,22 @@
+{
+  "name": "ffg-sudoku",
+  "version": "1.0.0",
+  "description": "Easily generate, solve, grade and validate Sudokus",
+  "main": "index.js",
+  "scripts": {
+    "test": "cls & node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FFGFlash/ffg-sudoku.git"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "Drake Taylor",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FFGFlash/ffg-sudoku/issues"
+  },
+  "homepage": "https://github.com/FFGFlash/ffg-sudoku#readme"
+}
