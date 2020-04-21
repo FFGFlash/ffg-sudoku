@@ -15,10 +15,10 @@ function randInt(max, min = 0) {
 }
 
 class Sudoku {
-  constructor(grid, type, difficulty) {
+  constructor(board, type, difficulty) {
     this.type = type;
     this.difficulty = difficulty;
-    this.grid = grid;
+    this.board = board;
   }
 
   static generate(options) {
@@ -225,15 +225,15 @@ class Sudoku {
   }
 
   validate() {
-    return Sudoku.validate(this);
+    return Sudoku.validate(this.board);
   }
 
   grade() {
-    return Sudoku.grade(this);
+    return Sudoku.grade(this.board);
   }
 
   solve() {
-    return Sudoku.solve(this);
+    return Sudoku.solve(this.board);
   }
 }
 
