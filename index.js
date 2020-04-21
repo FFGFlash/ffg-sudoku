@@ -10,31 +10,66 @@ Array.prototype.mapIndex = function(index) {
   return (index % this.length + this.length) % this.length;
 }
 
+Array.prototype.copy = function(shallow = false) {
+  if (shallow) return [...this];
+  let copy = [];
+  this.forEach(e => {
+    if (Array.isArray(e)) {
+      copy.push(e.copy());
+    } else {
+      if (typeof e === 'object') {
+        copy.push(e.copy());
+      } else {
+        copy.push(e);
+      }
+    }
+  });
+  return copy;
+}
+
+Object.prototype.copy = function(shallow = false) {
+  if (shallow) return Object.assign({}, this);
+  let copy = {};
+  for (let [key, value] of Object.entries(obj)) {
+    if (Array.isArray(value)) {
+      copy[key] = value.copy();
+    } else {
+      if (typeof value === 'object') {
+        copy[key] = value.copy();
+      } else {
+        copy[key] = value
+      }
+    }
+  }
+  return copy;
+}
+
 function randInt(max, min = 0) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-function solveGrid(grid, counter) {
+function solveGrid(data) {
   let j = 0, k = 0;
   for (let i = 0; i < 81; i++) {
     j = Math.floor(i / 9);
     k = i % 9;
     let l = Math.floor(Math.floor(i / 9) / 3);
     let m = Math.floor(i % 9 / 3);
-    if (grid[j][k] == 0) {
-      let col = [].concat(grid[0][k], grid[1][k], grid[2][k], grid[3][k], grid[4][k], grid[5][k], grid[6][k], grid[7][k], grid[8][k]);
-      let row = grid[j];
-      let sqr = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+    if (data.grid[j][k] == 0) {
+      let col = [].concat(data.grid[0][k], data.grid[1][k], data.grid[2][k], data.grid[3][k], data.grid[4][k], data.grid[5][k], data.grid[6][k], data.grid[7][k], data.grid[8][k]);
+      let row = data.grid[j];
+      let sqr = [].concat(data.grid[l * 3].slice(m * 3, m * 3 + 3), data.grid[l * 3 + 1].slice(m * 3, m * 3 + 3), data.grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
       for (let value of Sudoku.NUMBERS) {
         if (isNaN(value)) value = parseInt(value);
         if (!row.contains(value)) {
           if (!col.contains(value)) {
             if (!sqr.contains(value)) {
-              grid[j][k] = value;
-              if (checkGrid(grid)) {
-                counter++;
+              data.grid[j][k] = value;
+              if (checkGrid(data.grid)) {
+                data.counter++;
+                data.solution = data.grid.copy();
                 break;
-              } else if (solveGrid(grid)) {
+              } else if (solveGrid(data)) {
                 return true;
               }
             }
@@ -44,7 +79,7 @@ function solveGrid(grid, counter) {
       break;
     }
   }
-  grid[j][k] = 0;
+  data.grid[j][k] = 0;
 }
 
 function checkGrid(grid) {
@@ -57,6 +92,7 @@ function checkGrid(grid) {
 }
 
 function fillGrid(grid) {
+  let numbers = [...Sudoku.NUMBERS];
   let j = 0, k = 0;
   for (let i = 0; i < 81; i++) {
     // i = j + k * 9
@@ -118,9 +154,6 @@ class Sudoku {
       if (options.difficulty != undefined) difficulty = isNaN(options.difficulty) ? options.difficulty : Object.keys(Sudoku.DIFFICULTIES)[options.difficulty];
       if (difficulty == "random") difficulty = Sudoku.getRandomDifficulty();
 
-      let numbers = Sudoku.NUMBERS;
-      let counter = 1;
-
       fillGrid(grid);
 
       let attempts = 30;
@@ -139,11 +172,14 @@ class Sudoku {
         grid[i][j] = 0;
         grid[l][m] = 0;
 
-        counter = 0;
-        solveGrid([...grid], counter);
-        console.log("Solutions: ", counter, "Remaining Attempts: ", attempts);
-        console.log(JSON.stringify(grid));
-        if (counter != 1) {
+        let data = {
+          grid: grid.copy(),
+          counter: 0
+        };
+        solveGrid(data);
+        // console.log("Solutions: ", data.counter, "Remaining Attempts: ", attempts);
+        // console.log(JSON.stringify(data.grid));
+        if (data.counter != 1) {
           grid[i][j] = backups[0];
           grid[l][m] = backups[1];
           attempts -= 1;
@@ -156,7 +192,7 @@ class Sudoku {
         case "rows":
           break;
         case "columns":
-          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          var newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 81; i++) {
             let j = Math.floor(i / 9);
             let k = i % 9;
@@ -165,7 +201,7 @@ class Sudoku {
           grid = newGrid;
           break;
         case "nonets":
-          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          var newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 9; i++) {
             let l = Math.floor(i / 3);
             let m = Math.floor(i % 3);
@@ -175,21 +211,38 @@ class Sudoku {
           break;
       }
 
-      resolve(new Sudoku(grid, type, difficulty).is(Sudoku.FLAGS.VALID + Sudoku.FLAGS.UNSOLVED));
+      resolve(new Sudoku(grid, type, difficulty).is(Sudoku.FLAGS.VALID, true).is(Sudoku.FLAGS.UNSOLVED, true));
     });
   }
+
+  static serialize(flag) {
+		if (isNaN(flag)) {
+			flag = flag.toUpperCase();
+			if (this.FLAGS[flag]) {
+				flag = this.FLAGS[flag];
+			} else {
+				flag = 0b0;
+			}
+		}
+
+		if (Number(flag >>> 0).toString(2).length > Number(this.ALL >>> 0).toString(2).length) {
+			flag = 0b0;
+		}
+
+		return flag;
+	}
 
   static validate(grid, type) {
     return new Promise((resolve, reject) => {
       this.solve([...grid], type).then(sudoku => {
         resolve({
-          "status": sudokus.status
+          "status": sudoku.status
         });
       });
     });
   }
 
-  static grade(grid, type) {
+  static grade(grid) {
     return new Promise((resolve, reject) => {
       let emptyValues = 0;
       for (let i = 0; i < 81; i++) {
@@ -211,12 +264,12 @@ class Sudoku {
   }
 
   static solve(grid, type) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       switch(type) {
         case "rows":
           break;
         case "columns":
-          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          var newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 81; i++) {
             let j = Math.floor(i / 9);
             let k = i % 9;
@@ -225,7 +278,7 @@ class Sudoku {
           grid = newGrid;
           break;
         case "nonets":
-          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          var newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 9; i++) {
             let l = Math.floor(i / 3);
             let m = Math.floor(i % 3);
@@ -235,14 +288,21 @@ class Sudoku {
           break;
       }
 
-      let counter = 0;
-      solveGrid(grid, counter);
+      let {difficulty} = await this.grade(grid);
+
+      let data = {
+        grid: grid.copy(),
+        counter: 0
+      };
+      solveGrid(data);
+
+      grid = data.solution || data.grid;
 
       switch(type) {
         case "rows":
           break;
         case "columns":
-          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          var newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 81; i++) {
             let j = Math.floor(i / 9);
             let k = i % 9;
@@ -251,7 +311,7 @@ class Sudoku {
           grid = newGrid;
           break;
         case "nonets":
-          let newGrid = [[],[],[],[],[],[],[],[],[]];
+          var newGrid = [[],[],[],[],[],[],[],[],[]];
           for (let i = 0; i < 9; i++) {
             let l = Math.floor(i / 3);
             let m = Math.floor(i % 3);
@@ -260,8 +320,7 @@ class Sudoku {
           grid = newGrid;
           break;
       }
-
-      let sudoku = new Sudoku(grid, type, difficulty).is(counter != 0 ? Sudoku.FLAGS.SOLVED : Sudoku.FLAGS.UNSOLVED).is(counter == 1 ? Sudoku.FLAGS.VALID : Sudoku.FLAGS.INVALID);
+      let sudoku = new Sudoku(grid, type, difficulty).is(data.counter != 0 ? Sudoku.FLAGS.SOLVED : Sudoku.FLAGS.UNSOLVED, true).is(data.counter == 1 ? Sudoku.FLAGS.VALID : Sudoku.FLAGS.INVALID, true);
 
       resolve(sudoku);
     });
@@ -315,7 +374,7 @@ class Sudoku {
       return this;
     } else {
       flag = Number(this.constructor.serialize(flag) >>> 0).toString(2);
-      return Number(this.statusBits.subString(this.statusBits.length - flag.length, this.statusBits.length - flag.length + 1)) === 1;
+      return Number(this.statusBits.substring(this.statusBits.length - flag.length, this.statusBits.length - flag.length + 1)) === 1;
     }
   }
 
@@ -324,7 +383,7 @@ class Sudoku {
   }
 
   grade() {
-    return Sudoku.grade(this.board, this.type);
+    return Sudoku.grade(this.board);
   }
 
   solve() {
