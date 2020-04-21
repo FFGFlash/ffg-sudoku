@@ -177,8 +177,6 @@ class Sudoku {
           counter: 0
         };
         solveGrid(data);
-        // console.log("Solutions: ", data.counter, "Remaining Attempts: ", attempts);
-        // console.log(JSON.stringify(data.grid));
         if (data.counter != 1) {
           grid[i][j] = backups[0];
           grid[l][m] = backups[1];
