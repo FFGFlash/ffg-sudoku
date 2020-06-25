@@ -136,80 +136,84 @@ class Sudoku {
 
   static generate(options) {
     return new Promise((resolve, reject) => {
-      let type = Sudoku.TYPES[0];
-      let difficulty = Sudoku.DIFFICULTIES[0];
-      let grid = [
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0]
-      ];
+      try {
+        let type = Sudoku.TYPES[0];
+        let difficulty = Sudoku.DIFFICULTIES[0];
+        let grid = [
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0]
+        ];
 
-      if (options.type != undefined) type = isNaN(options.type) ? options.type : Object.keys(Sudoku.TYPES)[options.type];
-      if (options.difficulty != undefined) difficulty = isNaN(options.difficulty) ? options.difficulty : Object.keys(Sudoku.DIFFICULTIES)[options.difficulty];
-      if (difficulty == "random") difficulty = Sudoku.getRandomDifficulty();
+        if (options.type != undefined) type = isNaN(options.type) ? options.type : Object.keys(Sudoku.TYPES)[options.type];
+        if (options.difficulty != undefined) difficulty = isNaN(options.difficulty) ? options.difficulty : Object.keys(Sudoku.DIFFICULTIES)[options.difficulty];
+        if (difficulty == "random") difficulty = Sudoku.getRandomDifficulty();
 
-      fillGrid(grid);
+        fillGrid(grid);
 
-      let attempts = 30;
-      let emptyValues = 0;
-      while(emptyValues <= Sudoku.DIFFICULTIES[difficulty] && attempts > 0) {
-        let i = randInt(9);
-        let j = randInt(9);
-        while (grid[i][j] == 0) {
-          i = randInt(9);
-          j = randInt(9);
-        }
-        let l = 8 - i;
-        let m = 8 - j;
-        let backups = [grid[i][j], grid[l][m]];
-
-        grid[i][j] = 0;
-        grid[l][m] = 0;
-
-        let data = {
-          grid: grid.copy(),
-          counter: 0
-        };
-        solveGrid(data);
-        if (data.counter != 1) {
-          grid[i][j] = backups[0];
-          grid[l][m] = backups[1];
-          attempts -= 1;
-        } else {
-          attempts = 30;
-        }
-      }
-
-      switch(type) {
-        case "rows":
-          break;
-        case "columns":
-          var newGrid = [[],[],[],[],[],[],[],[],[]];
-          for (let i = 0; i < 81; i++) {
-            let j = Math.floor(i / 9);
-            let k = i % 9;
-            newGrid[k][j] = grid[j][k];
+        let attempts = 30;
+        let emptyValues = 0;
+        while(emptyValues <= Sudoku.DIFFICULTIES[difficulty] && attempts > 0) {
+          let i = randInt(9);
+          let j = randInt(9);
+          while (grid[i][j] == 0) {
+            i = randInt(9);
+            j = randInt(9);
           }
-          grid = newGrid;
-          break;
-        case "nonets":
-          var newGrid = [[],[],[],[],[],[],[],[],[]];
-          for (let i = 0; i < 9; i++) {
-            let l = Math.floor(i / 3);
-            let m = Math.floor(i % 3);
-            newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
-          }
-          grid = newGrid;
-          break;
-      }
+          let l = 8 - i;
+          let m = 8 - j;
+          let backups = [grid[i][j], grid[l][m]];
 
-      resolve(new Sudoku(grid, type, difficulty).is(Sudoku.FLAGS.VALID, true).is(Sudoku.FLAGS.UNSOLVED, true));
+          grid[i][j] = 0;
+          grid[l][m] = 0;
+
+          let data = {
+            grid: grid.copy(),
+            counter: 0
+          };
+          solveGrid(data);
+          if (data.counter != 1) {
+            grid[i][j] = backups[0];
+            grid[l][m] = backups[1];
+            attempts -= 1;
+          } else {
+            attempts = 30;
+          }
+        }
+
+        switch(type) {
+          case "rows":
+            break;
+          case "columns":
+            var newGrid = [[],[],[],[],[],[],[],[],[]];
+            for (let i = 0; i < 81; i++) {
+              let j = Math.floor(i / 9);
+              let k = i % 9;
+              newGrid[k][j] = grid[j][k];
+            }
+            grid = newGrid;
+            break;
+          case "nonets":
+            var newGrid = [[],[],[],[],[],[],[],[],[]];
+            for (let i = 0; i < 9; i++) {
+              let l = Math.floor(i / 3);
+              let m = Math.floor(i % 3);
+              newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+            }
+            grid = newGrid;
+            break;
+        }
+
+        resolve(new Sudoku(grid, type, difficulty).is(Sudoku.FLAGS.VALID, true).is(Sudoku.FLAGS.UNSOLVED, true));
+      } catch(err) {
+        reject(err);
+      }
     });
   }
 
@@ -236,91 +240,99 @@ class Sudoku {
         resolve({
           "status": sudoku.status
         });
-      });
+      }).catch(reject);
     });
   }
 
   static grade(grid) {
     return new Promise((resolve, reject) => {
-      let emptyValues = 0;
-      for (let i = 0; i < 81; i++) {
-        let j = Math.floor(i / 9);
-        let k = i % 9;
-        if (grid[j][k] != 0) continue;
-        emptyValues++;
+      try {
+        let emptyValues = 0;
+        for (let i = 0; i < 81; i++) {
+          let j = Math.floor(i / 9);
+          let k = i % 9;
+          if (grid[j][k] != 0) continue;
+          emptyValues++;
+        }
+        let difficulty = this.DIFFICULTIES[1];
+        for (let diff in this.DIFFICULTIES) {
+          if (emptyValues > this.DIFFICULTIES[diff]) continue;
+          difficulty = diff;
+          break;
+        }
+        resolve({
+          "difficulty": difficulty
+        });
+      } catch(err) {
+        reject(err);
       }
-      let difficulty = this.DIFFICULTIES[1];
-      for (let diff in this.DIFFICULTIES) {
-        if (emptyValues > this.DIFFICULTIES[diff]) continue;
-        difficulty = diff;
-        break;
-      }
-      resolve({
-        "difficulty": difficulty
-      });
     });
   }
 
   static solve(grid, type) {
     return new Promise(async (resolve, reject) => {
-      switch(type) {
-        case "rows":
-          break;
-        case "columns":
-          var newGrid = [[],[],[],[],[],[],[],[],[]];
-          for (let i = 0; i < 81; i++) {
-            let j = Math.floor(i / 9);
-            let k = i % 9;
-            newGrid[k][j] = grid[j][k];
-          }
-          grid = newGrid;
-          break;
-        case "nonets":
-          var newGrid = [[],[],[],[],[],[],[],[],[]];
-          for (let i = 0; i < 9; i++) {
-            let l = Math.floor(i / 3);
-            let m = Math.floor(i % 3);
-            newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
-          }
-          grid = newGrid;
-          break;
+      try {
+        switch(type) {
+          case "rows":
+            break;
+          case "columns":
+            var newGrid = [[],[],[],[],[],[],[],[],[]];
+            for (let i = 0; i < 81; i++) {
+              let j = Math.floor(i / 9);
+              let k = i % 9;
+              newGrid[k][j] = grid[j][k];
+            }
+            grid = newGrid;
+            break;
+          case "nonets":
+            var newGrid = [[],[],[],[],[],[],[],[],[]];
+            for (let i = 0; i < 9; i++) {
+              let l = Math.floor(i / 3);
+              let m = Math.floor(i % 3);
+              newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+            }
+            grid = newGrid;
+            break;
+        }
+
+        let {difficulty} = await this.grade(grid);
+
+        let data = {
+          grid: grid.copy(),
+          counter: 0
+        };
+        solveGrid(data);
+
+        grid = data.solution || data.grid;
+
+        switch(type) {
+          case "rows":
+            break;
+          case "columns":
+            var newGrid = [[],[],[],[],[],[],[],[],[]];
+            for (let i = 0; i < 81; i++) {
+              let j = Math.floor(i / 9);
+              let k = i % 9;
+              newGrid[k][j] = grid[j][k];
+            }
+            grid = newGrid;
+            break;
+          case "nonets":
+            var newGrid = [[],[],[],[],[],[],[],[],[]];
+            for (let i = 0; i < 9; i++) {
+              let l = Math.floor(i / 3);
+              let m = Math.floor(i % 3);
+              newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
+            }
+            grid = newGrid;
+            break;
+        }
+        let sudoku = new Sudoku(grid, type, difficulty).is(data.counter != 0 ? Sudoku.FLAGS.SOLVED : Sudoku.FLAGS.UNSOLVED, true).is(data.counter == 1 ? Sudoku.FLAGS.VALID : Sudoku.FLAGS.INVALID, true);
+
+        resolve(sudoku);
+      } catch(err) {
+        reject(err);
       }
-
-      let {difficulty} = await this.grade(grid);
-
-      let data = {
-        grid: grid.copy(),
-        counter: 0
-      };
-      solveGrid(data);
-
-      grid = data.solution || data.grid;
-
-      switch(type) {
-        case "rows":
-          break;
-        case "columns":
-          var newGrid = [[],[],[],[],[],[],[],[],[]];
-          for (let i = 0; i < 81; i++) {
-            let j = Math.floor(i / 9);
-            let k = i % 9;
-            newGrid[k][j] = grid[j][k];
-          }
-          grid = newGrid;
-          break;
-        case "nonets":
-          var newGrid = [[],[],[],[],[],[],[],[],[]];
-          for (let i = 0; i < 9; i++) {
-            let l = Math.floor(i / 3);
-            let m = Math.floor(i % 3);
-            newGrid[i] = [].concat(grid[l * 3].slice(m * 3, m * 3 + 3), grid[l * 3 + 1].slice(m * 3, m * 3 + 3), grid[l * 3 + 2].slice(m * 3, m * 3 + 3));
-          }
-          grid = newGrid;
-          break;
-      }
-      let sudoku = new Sudoku(grid, type, difficulty).is(data.counter != 0 ? Sudoku.FLAGS.SOLVED : Sudoku.FLAGS.UNSOLVED, true).is(data.counter == 1 ? Sudoku.FLAGS.VALID : Sudoku.FLAGS.INVALID, true);
-
-      resolve(sudoku);
     });
   }
 
