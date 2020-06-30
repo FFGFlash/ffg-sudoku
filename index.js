@@ -137,8 +137,8 @@ class Sudoku {
   static generate(options) {
     return new Promise((resolve, reject) => {
       try {
-        let type = Sudoku.TYPES[0];
-        let difficulty = Sudoku.DIFFICULTIES[0];
+        let type = Object.keys(Sudoku.TYPES)[0];
+        let difficulty = Object.keys(Sudoku.DIFFICULTIES)[0];
         let grid = [
           [0,0,0,0,0,0,0,0,0],
           [0,0,0,0,0,0,0,0,0],
